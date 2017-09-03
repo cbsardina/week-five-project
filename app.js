@@ -6,7 +6,9 @@ const mustacheExpress = require('mustache-express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const {
-  guessWord
+  guessWord,
+  create_,
+  compare
 } = require('./dal');
 // const routes = require('./routes/routes');
 
@@ -30,7 +32,7 @@ app.use(
     saveUninitialized: true,
     cookie: { maxAge: null }
   }))
-  // verify login
+  // verify player
   function isPlayer(req, res, next) {
     if(req.session.user) {
       next();
@@ -39,7 +41,6 @@ app.use(
       res.redirect('/welcome');
     }
   }
-
 
 //============== ROUTES =========================
 
@@ -50,9 +51,11 @@ app.get('/', (req, res) => {
 
 // ---------- /welcome =render=> welcome ----------
 app.get('/welcome', (req, res) => {
-  req.session.word = guessWord()
-  const count = 9;
-  req.session.count = count
+  req.session.wordA = guessWord()
+  req.session.count = 9
+  req.session.hidden = create_(req.session.word)
+  req.session.badGuess = []
+  console.log(req.session.hidden);
   //.................................
   console.log('req.session.count::');
   console.log(req.session.count);
@@ -63,27 +66,26 @@ app.get('/welcome', (req, res) => {
 // ---------- /main --redir--> /main ----------
 app.get('/main', isPlayer, (req, res) => {
   res.redirect('/main')
-})  // ∆ to conditional based on count
+})
 
 // ---------- POST /main =render=> main ----------
 app.post('/main', (req, res, next) => {
-  if (req.session.user) {          //starts and maintains session user
-    next()
-  }
-    else {
-      req.session.user = req.body.user
-    }
+  req.session.user = (req.session.user) ? req.session.user : req.body.user;
   const player = req.session.user
-  const word = req.session.word   // use word[i]
-  const count = req.session.count - 1   // ∆ to conditional
+  const wordA = req.session.word   // use word[i]
+  const count = req.session.count  // ∆ to conditional
   const guess = req.body.guess
+  const uScoreA = req.session.hidden
+  const badGuessA = req.session.badGuess
+  const gamePlay = compare(req.session.word, req.session.hidden, req.session.badGuess)
+
   console.log('========================');
   console.log('Guess below:: ');
   console.log(guess);
   console.log('=======================');
   req.session.count = count
   console.log(req.session);
-    res.render('main', {player, word, count})
+    res.render('main', {player, uScore, count, badGuessA})
 })
 
 
