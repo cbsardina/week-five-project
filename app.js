@@ -8,8 +8,11 @@ const bodyParser = require('body-parser');
 const {
   guessWord,
   create_,
-  compare
+  checkGuess,
+  allGuesses,
+  filterGuess
 } = require('./dal');
+// const scrap = require('./scrap')
 // const routes = require('./routes/routes');
 
 // Register '.mustache' extension with The Mustache Express
@@ -30,7 +33,7 @@ app.use(
     secret: 'puppy monkey baby',
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: null }
+    cookie: { maxAge: null },
   }))
   // verify player
   function isPlayer(req, res, next) {
@@ -51,17 +54,15 @@ app.get('/', (req, res) => {
 
 // ---------- /welcome =render=> welcome ----------
 app.get('/welcome', (req, res) => {
-  req.session.wordA = guessWord()
-  req.session.count = 9
-  req.session.hidden = create_(req.session.word)
-  req.session.badGuess = []
-  console.log(req.session.hidden);
-  //.................................
-  console.log('req.session.count::');
-  console.log(req.session.count);
-  console.log('======================');
+  req.session.wordArr = guessWord()
+  req.session.letterCount = (req.session.wordArr).length
+  req.session.count = 8
+  req.session.uScoreArr = create_(req.session.wordArr)
+  req.session.guessArr = []
   res.render('welcome')
 })
+
+
 
 // ---------- /main --redir--> /main ----------
 app.get('/main', isPlayer, (req, res) => {
@@ -71,22 +72,37 @@ app.get('/main', isPlayer, (req, res) => {
 // ---------- POST /main =render=> main ----------
 app.post('/main', (req, res, next) => {
   req.session.user = (req.session.user) ? req.session.user : req.body.user;
+  const wordArr = req.session.wordArr
   const player = req.session.user
-  const wordA = req.session.word   // use word[i]
-  const count = req.session.count  // ∆ to conditional
-  const guess = req.body.guess
-  const uScoreA = req.session.hidden
-  const badGuessA = req.session.badGuess
-  const gamePlay = compare(req.session.word, req.session.hidden, req.session.badGuess)
+  let count = req.session.count
 
-  console.log('========================');
-  console.log('Guess below:: ');
-  console.log(guess);
-  console.log('=======================');
-  req.session.count = count
-  console.log(req.session);
-    res.render('main', {player, uScore, count, badGuessA})
+  let guessArr = req.session.guessArr
+  const checkGuess = filterGuess(wordArr, req.body.guess, req.session.letterCount)
+  const uScoreArr = checkGuess[0]
+  req.session.letterCount = checkGuess[1]
+  allGuesses(req.session.guessArr, req.body.guess)  //push all guesses
+  req.session.guessArr = guessArr
+
+  if ((req.session.letterCount === 0)
+            && (req.session.count > 0)) {
+    alert('You Win!!!')
+  }
+  else if ((req.session.count === 0)
+              && (req.session.letterCount > 0)){
+      alert('Womp Womp...Sorry, try again...')
+  }
+  //.................................
+  // console.log(req.session);
+  // console.log('======================');
+  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    res.render('main', {player, count, wordArr, uScoreArr, guessArr})
 })
+
+
+// console.log('========================');
+// console.log();
+// console.log();
+// console.log('=======================');
 
 
 // app.post('/main/:guesses_left', isPlayer, (req, res) => {

@@ -22,13 +22,13 @@
     </header>
 <!-- ---------- MAIN ---------- -->
     <main>
-      <h1></h1>
-      <h1 class="mysteryWord">{{#uScore}} {{.}} {{/uScore}}</h1>
+      <h1>{{#wordArr}} {{.}} {{/wordArr}}</h1>   <!-- temp to chk gm -->
+      <h1 class="mysteryWord">{{#uScoreArr}} {{.}} {{/uScoreArr}}</h1>
       <form class="guessForm" action="/main" method="POST">
         <input type="text" name="guess" pattern="[A-Za-z]{1}" title="1 letter at a time. A-Z or a-z" value="">
         <button type="submit" name="guessSubmit" data-count="">Make a guess</button>
       </form>
-      <h2>Your guesses: {{#badGuessA}} {{.}} {{/badGuessA}}</h2>
+      <h2>Your guesses: {{#badGuessArr}} {{.}} {{/badGuessArr}}</h2>
     </main>
 
   </body>
