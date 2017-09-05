@@ -9,11 +9,9 @@ const {
   guessWord,
   create_,
   checkGuess,
-  allGuesses,
-  filterGuess
+  filterGuess,
+  counter
 } = require('./dal');
-// const scrap = require('./scrap')
-// const routes = require('./routes/routes');
 
 // Register '.mustache' extension with The Mustache Express
 app.engine('mustache', mustacheExpress());
@@ -35,6 +33,7 @@ app.use(
     saveUninitialized: true,
     cookie: { maxAge: null },
   }))
+
   // verify player
   function isPlayer(req, res, next) {
     if(req.session.user) {
@@ -54,15 +53,15 @@ app.get('/', (req, res) => {
 
 // ---------- /welcome =render=> welcome ----------
 app.get('/welcome', (req, res) => {
-  req.session.wordArr = guessWord()
-  req.session.letterCount = (req.session.wordArr).length
-  req.session.count = 8
-  req.session.uScoreArr = create_(req.session.wordArr)
-  req.session.guessArr = []
+  const sesh = req.session
+  sesh.wordArr = guessWord()
+  sesh.letterCount = (sesh.wordArr).length
+  sesh.count = 8
+  sesh.uScoreArr = create_(sesh.wordArr)
+  sesh.allGuessArr = []
+  console.log(sesh);
   res.render('welcome')
 })
-
-
 
 // ---------- /main --redir--> /main ----------
 app.get('/main', isPlayer, (req, res) => {
@@ -70,57 +69,40 @@ app.get('/main', isPlayer, (req, res) => {
 })
 
 // ---------- POST /main =render=> main ----------
-app.post('/main', (req, res, next) => {
-  req.session.user = (req.session.user) ? req.session.user : req.body.user;
-  const wordArr = req.session.wordArr
-  const player = req.session.user
-  let count = req.session.count
-
-  let guessArr = req.session.guessArr
-  const checkGuess = filterGuess(wordArr, req.body.guess, req.session.letterCount)
-  const uScoreArr = checkGuess[0]
-  req.session.letterCount = checkGuess[1]
-  allGuesses(req.session.guessArr, req.body.guess)  //push all guesses
-  req.session.guessArr = guessArr
-
-  if ((req.session.letterCount === 0)
-            && (req.session.count > 0)) {
-    alert('You Win!!!')
+app.post('/main', (req, res) => {
+  const sesh = req.session
+  sesh.user = (sesh.user) ? sesh.user : req.body.user;
+  //---------- if click guess, fn to compare, splice, etc.
+  if (req.body.guess) {
+    const checkGuess = filterGuess(sesh.wordArr,
+                                  sesh.uScoreArr,
+                                  req.body.guess,
+                                  sesh.letterCount,
+                                  sesh.allGuessArr)
+    sesh.uScoreArr = checkGuess[0]
+    sesh.letterCount = checkGuess[1]
+    const checkCount = counter(sesh.count, checkGuess[2])
+    sesh.count = checkCount
+    sesh.allGuessArr = checkGuess[3]
+  };
+  //----------- assign variables for views
+  const wordArr = sesh.wordArr;
+  const player = sesh.user;
+  let allGuessArr = sesh.allGuessArr;
+  let uScoreArr = sesh.uScoreArr;
+  let count = sesh.count;
+  //conditionals winner, loser, continue game
+  if (sesh.letterCount === 0 && sesh.count > 0) {
+    res.render('winner', {player, wordArr}) }
+  else if (sesh.count === 0 && sesh.letterCount > 0) {
+    res.render('loser', {player, wordArr, uScoreArr}) }
+  else {
+    res.render('main', {player, count, uScoreArr, allGuessArr})
   }
-  else if ((req.session.count === 0)
-              && (req.session.letterCount > 0)){
-      alert('Womp Womp...Sorry, try again...')
-  }
-  //.................................
-  // console.log(req.session);
-  // console.log('======================');
-  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    res.render('main', {player, count, wordArr, uScoreArr, guessArr})
-})
+});
 
 
-// console.log('========================');
-// console.log();
-// console.log();
-// console.log('=======================');
-
-
-// app.post('/main/:guesses_left', isPlayer, (req, res) => {
-//   const guessLetter = req.body.guess
-//   console.log(guessLetter);
-// })
-// app.post('/main', (req, res) => {
-//
-//
-//   res.render('main', {player})
-// })
-//
-// app.get('/main', isPlayer, (req, res) => {
-//
-//
-// })
-
-  // =========== PORT SETUP =========================//
+// =========== PORT SETUP =========================//
 app.listen(3000, (req, res) => {
   console.log('Server running on 3000');
 })

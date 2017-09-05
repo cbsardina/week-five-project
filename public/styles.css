@@ -1,0 +1,50 @@
+body {
+  background-color: #B5A96F;
+}
+/*----- welcome page -----*/
+.welcome h1 {
+  text-align: center;
+  margin-top: 3em;
+  margin-bottom: 2em;
+}
+.welcome form {
+  font-size: 1.5em;
+  margin: 0 auto;
+  display: flex;
+  flex-flow: row;
+  justify-content: center;
+}
+.welcome input {
+  margin-right: .5em;
+}
+
+/*----- main page -----*/
+.headerLeft {
+  text-align: left;
+}
+.headerRight {
+  text-align: right;
+}
+.main h1, form, h2 {
+  display: flex;
+  flex-flow: row;
+  justify-content: center;
+}
+.main form {
+  padding-top: 1em;
+  font-size: 1.5em;
+}
+.main form input {
+  text-align: center;
+  margin-right: .5em;
+}
+
+/*----- winner page -----*/
+.winner h1, h2 {
+  text-align: center;
+}
+
+/*----- loser page -----*/
+.loser h1, h2 {
+  text-align: center;
+}
