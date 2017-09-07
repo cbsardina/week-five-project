@@ -91,6 +91,8 @@ app.post('/main', (req, res) => {
   let allGuessArr = sesh.allGuessArr;
   let uScoreArr = sesh.uScoreArr;
   let count = sesh.count;
+  console.log(req.body.guess);
+  console.log(sesh);
   //conditionals winner, loser, continue game
   if (sesh.letterCount === 0 && sesh.count > 0) {
     res.render('winner', {player, wordArr}) }
